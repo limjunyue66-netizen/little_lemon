@@ -26,63 +26,52 @@ $tables = array(
     // USERS TABLE
     "CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        role ENUM('admin','user') DEFAULT 'user',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        name VARCHAR(100),
+        email VARCHAR(100) UNIQUE,
+        password VARCHAR(255),
+        role ENUM('admin','user') DEFAULT 'user'
     )",
     
     // CATEGORIES TABLE
     "CREATE TABLE IF NOT EXISTS categories (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(50) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        name VARCHAR(50)
     )",
     
     // MENU TABLE
     "CREATE TABLE IF NOT EXISTS menu (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        category_id INT NOT NULL,
-        name VARCHAR(100) NOT NULL,
-        price DECIMAL(6,2) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        category_id INT,
+        name VARCHAR(100),
+        price DECIMAL(6,2),
+        FOREIGN KEY (category_id) REFERENCES categories(id)
     )",
     
     // RESERVATIONS TABLE
     "CREATE TABLE IF NOT EXISTS reservations (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        reserve_date DATE NOT NULL,
-        reserve_time TIME NOT NULL,
-        guests INT NOT NULL,
-        status ENUM('pending','confirmed','cancelled') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        user_id INT,
+        reserve_date DATE,
+        reserve_time TIME,
+        guests INT
     )",
     
     // ORDERS TABLE
     "CREATE TABLE IF NOT EXISTS orders (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        order_type ENUM('dine-in','takeaway') NOT NULL,
+        user_id INT,
+        order_type ENUM('dine-in','takeaway'),
         reservation_id INT NULL,
-        total DECIMAL(8,2) NOT NULL,
-        status ENUM('pending','completed','cancelled') DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE SET NULL
+        total DECIMAL(8,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
     
     // ORDER ITEMS TABLE
     "CREATE TABLE IF NOT EXISTS order_items (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        order_id INT NOT NULL,
-        menu_id INT NOT NULL,
-        quantity INT NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-        FOREIGN KEY (menu_id) REFERENCES menu(id) ON DELETE CASCADE
+        order_id INT,
+        menu_id INT,
+        quantity INT
     )"
 );
 
@@ -119,7 +108,9 @@ mysqli_close($conn);
 <html>
 <head>
     <title>Database Setup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/responsive.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <div class="container mt-5">

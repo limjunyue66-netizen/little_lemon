@@ -3,14 +3,19 @@
 <html>
 <head>
 <title>Little Lemon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="assets/css/responsive.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
 <nav class="navbar navbar-dark bg-success">
 <div class="container">
-<a class="navbar-brand"><i class="bi bi-lemon"></i> Little Lemon</a>
+<div class="d-flex align-items-center">
+	<a class="navbar-brand"><i class="bi bi-lemon"></i> Little Lemon</a>
+	<a href="tel:<?= $contact_phone ?>" class="btn btn-outline-light btn-sm ms-2 d-none d-md-inline">Contact number : <?= $contact_phone ?></a>
+</div>
 
 <div>
 <?php if(isset($_SESSION['user'])): ?>

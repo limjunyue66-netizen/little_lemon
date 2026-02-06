@@ -18,6 +18,9 @@ if (!$conn) {
 // Set charset to utf8
 mysqli_set_charset($conn, "utf8");
 
+// Contact phone number for direct bookings (change as needed)
+$contact_phone = '+1-555-123-4567';
+
 // Check if user is logged in
 if(!isset($_SESSION['user']) && !in_array(basename($_SERVER['PHP_SELF']), ['register.php', 'login.php', 'index.php'])) {
     // Allow access to certain pages without login

@@ -8,8 +8,10 @@ if(!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 <html>
 <head>
 <title>Order - Little Lemon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="assets/css/responsive.css" rel="stylesheet">
 <style>
 	.menu-table tbody tr:hover { background-color: #f8f9fa; }
 	.cart-card { border-top: 3px solid #28a745; }

@@ -31,11 +31,16 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
 <html>
 <head>
 <title>Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/css/responsive.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
 <div class="container mt-3"><a href="javascript:history.back()" class="btn btn-secondary btn-sm">← Back</a></div>
+<div class="container mt-2">
+    <div class="alert alert-info small mb-0">Prefer to call? Book by phone: <a href="tel:<?= $contact_phone ?>"><?= $contact_phone ?></a></div>
+</div>
 
 <div class="container mt-5 col-md-4">
 <div class="card shadow">

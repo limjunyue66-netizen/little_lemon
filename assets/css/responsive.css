@@ -1,0 +1,25 @@
+/* Responsive helpers for Little Lemon */
+:root{--brand:#28a745}
+.order-card{border-left:4px solid var(--brand)}
+.order-card.cancelled{border-left-color:#dc3545;opacity:.9}
+.order-card.completed{border-left-color:#007bff}
+.order-card.pending{border-left-color:#ffc107}
+.status-badge{padding:6px 10px;border-radius:20px;font-size:.85rem;display:inline-block}
+
+/* Utility spacing tweaks */
+@media (max-width:575.98px){
+  .container{padding-left:12px;padding-right:12px}
+  .navbar-brand{font-size:1rem}
+  .order-card .row>[class*="col-"]{margin-bottom:10px}
+  .status-badge{font-size:.8rem;padding:5px 8px}
+  .card .h5{font-size:1rem}
+  .btn{font-size:.9rem;padding:.45rem .6rem}
+}
+
+@media (min-width:576px) and (max-width:991.98px){
+  .order-card .col-md-3{text-align:right}
+}
+
+/* Make images and tables responsive */
+img{max-width:100%;height:auto}
+table{width:100%;display:block;overflow:auto}

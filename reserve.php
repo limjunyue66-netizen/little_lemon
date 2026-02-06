@@ -19,15 +19,21 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     if(empty($date) || empty($time) || $guest <= 0) {
         $_SESSION['reservation_error'] = "All fields are required and guests must be greater than 0";
     } else {
-        $date = mysqli_real_escape_string($conn, $date);
-        $time = mysqli_real_escape_string($conn, $time);
-        
-        if(mysqli_query($conn, "INSERT INTO reservations(user_id,reserve_date,reserve_time,guests) VALUES('$uid','$date','$time','$guest')")) {
-            $_SESSION['reservation_success'] = "Reservation successful for $date at $time for $guest guests!";
-            header("Location: index.php");
-            exit();
+        // Block weekends: PHP date('w') returns 0 (Sun) .. 6 (Sat)
+        $w = date('w', strtotime($date));
+        if($w == 0 || $w == 6) {
+            $_SESSION['reservation_error'] = "Operator is off on Saturday and Sunday. Please select a weekday.";
         } else {
-            $_SESSION['reservation_error'] = "Error: " . mysqli_error($conn);
+            $date = mysqli_real_escape_string($conn, $date);
+            $time = mysqli_real_escape_string($conn, $time);
+            
+            if(mysqli_query($conn, "INSERT INTO reservations(user_id,reserve_date,reserve_time,guests) VALUES('$uid','$date','$time','$guest')")) {
+                $_SESSION['reservation_success'] = "Reservation successful for $date at $time for $guest guests!";
+                header("Location: index.php");
+                exit();
+            } else {
+                $_SESSION['reservation_error'] = "Error: " . mysqli_error($conn);
+            }
         }
     }
     
@@ -42,7 +48,9 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
 <html>
 <head>
 <title>Reserve Table</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="assets/css/responsive.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
@@ -79,6 +87,22 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
 </div>
 </div>
 </div>
-
+</div>
+<script>
+// Prevent selecting weekend dates client-side
+document.addEventListener('DOMContentLoaded', function(){
+    var dateInput = document.querySelector('input[name="date"]');
+    if(!dateInput) return;
+    dateInput.addEventListener('input', function(){
+        var d = new Date(this.value + 'T00:00');
+        if(isNaN(d)) return;
+        var day = d.getDay(); // 0 Sun .. 6 Sat
+        if(day === 0 || day === 6){
+            alert('Operator is off on Saturday and Sunday. Please choose a weekday.');
+            this.value = '';
+        }
+    });
+});
+</script>
 </body>
 </html>

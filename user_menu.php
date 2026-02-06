@@ -3,8 +3,10 @@
 <html>
 <head>
 <title>Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="assets/css/responsive.css" rel="stylesheet">
 <style>
 	.menu-card:hover{ transform: translateY(-4px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); transition: all 0.3s ease; }
 	.price-badge{ font-size: 1rem; }
