@@ -9,11 +9,26 @@ if(!isset($_SESSION['user'])) {
 $msg = '';
 $error = '';
 
+// Define available tables and capacities (table_number => seats)
+$tables = [
+    1 => 2,
+    2 => 2,
+    3 => 4,
+    4 => 4,
+    5 => 6,
+    6 => 6,
+    7 => 8,
+    8 => 8,
+    9 => 10,
+    10 => 12
+];
+
 if($_SERVER['REQUEST_METHOD']=='POST'){
     $uid = $_SESSION['user']['id'];
     $date = $_POST['date'];
     $time = $_POST['time'];
     $guest = intval($_POST['guest']);
+    $table_id = intval($_POST['table_id'] ?? 0);
     
     // Validation
     if(empty($date) || empty($time) || $guest <= 0) {
@@ -24,15 +39,41 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         if($w == 0 || $w == 6) {
             $_SESSION['reservation_error'] = "Operator is off on Saturday and Sunday. Please select a weekday.";
         } else {
-            $date = mysqli_real_escape_string($conn, $date);
-            $time = mysqli_real_escape_string($conn, $time);
-            
-            if(mysqli_query($conn, "INSERT INTO reservations(user_id,reserve_date,reserve_time,guests) VALUES('$uid','$date','$time','$guest')")) {
-                $_SESSION['reservation_success'] = "Reservation successful for $date at $time for $guest guests!";
-                header("Location: index.php");
-                exit();
+            // validate table selection
+            if(!isset($tables[$table_id])) {
+                $_SESSION['reservation_error'] = "Please select a valid table.";
             } else {
-                $_SESSION['reservation_error'] = "Error: " . mysqli_error($conn);
+                $capacity = $tables[$table_id];
+                if($guest > $capacity) {
+                    $_SESSION['reservation_error'] = "Selected table $table_id only has $capacity seats. Please choose a larger table or reduce guests.";
+                } else {
+                    $date = $conn->real_escape_string($date);
+                    $time = $conn->real_escape_string($time);
+                    $table_safe = $conn->real_escape_string((string)$table_id);
+
+                    // Check if reservations.table_number column exists
+                    $result = $conn->query("SHOW COLUMNS FROM reservations LIKE 'table_number'");
+                    $has_table_col = $result && $result->num_rows > 0;
+
+                    if($has_table_col) {
+                        $stmt = $conn->prepare("INSERT INTO reservations(user_id,reserve_date,reserve_time,guests,table_number) VALUES(?,?,?,?,?)");
+                        $stmt->bind_param("isssi", $uid, $date, $time, $guest, $table_safe);
+                    } else {
+                        // fallback if DB not updated yet
+                        $stmt = $conn->prepare("INSERT INTO reservations(user_id,reserve_date,reserve_time,guests) VALUES(?,?,?,?)");
+                        $stmt->bind_param("isss", $uid, $date, $time, $guest);
+                    }
+
+                    if($stmt->execute()) {
+                        $note = $has_table_col ? '' : ' (table not saved — run ALTER TABLE to add table_number column)';
+                        $_SESSION['reservation_success'] = "Reservation successful for $date at $time for $guest guests at Table $table_id!" . $note;
+                        header("Location: index.php");
+                        exit();
+                    } else {
+                        $_SESSION['reservation_error'] = "Error: " . $stmt->error;
+                    }
+                    $stmt->close();
+                }
             }
         }
     }
@@ -80,7 +121,16 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
 </div>
 <div class="mb-3">
 <label class="form-label">Number of Guests</label>
-<input type="number" name="guest" class="form-control" min="1" max="20" placeholder="2" required>
+<input type="number" name="guest" class="form-control" min="1" max="20" required>
+</div>
+<div class="mb-3">
+    <label class="form-label">Select Table</label>
+    <select name="table_id" class="form-select" required>
+        <option value="">-- Select Table --</option>
+        <?php foreach($tables as $tn => $seats): ?>
+            <option value="<?= $tn ?>">Table <?= $tn ?> (<?= $seats ?> seats)</option>
+        <?php endforeach; ?>
+    </select>
 </div>
 <button type="submit" class="btn btn-success w-100">Reserve</button>
 </form>

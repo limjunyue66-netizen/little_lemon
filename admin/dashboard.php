@@ -37,8 +37,8 @@ if(!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'admin') {
 <h5 class="card-title">Total Users</h5>
 <h3>
 <?php
-$result = mysqli_query($conn, "SELECT COUNT(*) as count FROM users");
-$row = mysqli_fetch_assoc($result);
+$result = $conn->query("SELECT COUNT(*) as count FROM users");
+$row = $result->fetch_assoc();
 echo $row['count'];
 ?>
 </h3>
@@ -52,8 +52,8 @@ echo $row['count'];
 <h5 class="card-title">Total Orders</h5>
 <h3>
 <?php
-$result = mysqli_query($conn, "SELECT COUNT(*) as count FROM orders");
-$row = mysqli_fetch_assoc($result);
+$result = $conn->query("SELECT COUNT(*) as count FROM orders");
+$row = $result->fetch_assoc();
 echo $row['count'];
 ?>
 </h3>
@@ -67,8 +67,8 @@ echo $row['count'];
 <h5 class="card-title">Total Reservations</h5>
 <h3>
 <?php
-$result = mysqli_query($conn, "SELECT COUNT(*) as count FROM reservations");
-$row = mysqli_fetch_assoc($result);
+$result = $conn->query("SELECT COUNT(*) as count FROM reservations");
+$row = $result->fetch_assoc();
 echo $row['count'];
 ?>
 </h3>
@@ -82,8 +82,8 @@ echo $row['count'];
 <h5 class="card-title">Menu Items</h5>
 <h3>
 <?php
-$result = mysqli_query($conn, "SELECT COUNT(*) as count FROM menu");
-$row = mysqli_fetch_assoc($result);
+$result = $conn->query("SELECT COUNT(*) as count FROM menu");
+$row = $result->fetch_assoc();
 echo $row['count'];
 ?>
 </h3>

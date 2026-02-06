@@ -16,21 +16,28 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         $error = "Password must be at least 6 characters";
     } else {
         // Check if email already exists
-        $check = mysqli_query($conn, "SELECT id FROM users WHERE email='".mysqli_real_escape_string($conn, $email)."'");
-        if(mysqli_num_rows($check) > 0) {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email=?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if($result->num_rows > 0) {
             $error = "Email already registered";
         } else {
             $pass = password_hash($password, PASSWORD_DEFAULT);
-            $name = mysqli_real_escape_string($conn, $name);
-            $email = mysqli_real_escape_string($conn, $email);
+            $name = $conn->real_escape_string($name);
+            $email = $conn->real_escape_string($email);
             
-            if(mysqli_query($conn, "INSERT INTO users(name,email,password) VALUES('$name','$email','$pass')")) {
+            $stmt2 = $conn->prepare("INSERT INTO users(name,email,password) VALUES(?,?,?)");
+            $stmt2->bind_param("sss", $name, $email, $pass);
+            if($stmt2->execute()) {
                 $success = "Registration successful! Redirecting to login...";
                 header("refresh:2;url=login.php");
             } else {
-                $error = "Registration failed: " . mysqli_error($conn);
+                $error = "Registration failed: " . $stmt2->error;
             }
+            $stmt2->close();
         }
+        $stmt->close();
     }
 }
 ?>

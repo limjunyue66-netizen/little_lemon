@@ -4,19 +4,19 @@ session_start();
 // Database connection settings
 $host = 'localhost';
 $user = 'root';
-$password = '070817';
+$password = '070817';  // Updated for XAMPP default
 $dbname = 'little_lemon';
 
 // Create connection
-$conn = mysqli_connect($host, $user, $password, $dbname);
+$conn = new mysqli($host, $user, $password, $dbname);
 
 // Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
-// Set charset to utf8
-mysqli_set_charset($conn, "utf8");
+// Set charset to utf8mb4
+$conn->set_charset("utf8mb4");
 
 // Contact phone number for direct bookings (change as needed)
 $contact_phone = '+1-555-123-4567';

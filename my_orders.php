@@ -10,7 +10,10 @@ $user_id = $_SESSION['user']['id'];
 $message = '';
 
 // Get user's orders
-$orders_result = mysqli_query($conn, "SELECT * FROM orders WHERE user_id=$user_id ORDER BY created_at DESC");
+$stmt = $conn->prepare("SELECT * FROM orders WHERE user_id=? ORDER BY created_at DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$orders_result = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -36,10 +39,10 @@ $orders_result = mysqli_query($conn, "SELECT * FROM orders WHERE user_id=$user_i
     </div>
     <?php endif; ?>
 
-    <?php if(mysqli_num_rows($orders_result) > 0): ?>
-    
-    <?php while($order = mysqli_fetch_assoc($orders_result)): ?>
-    
+    <?php if($orders_result->num_rows > 0): ?>
+
+    <?php while($order = $orders_result->fetch_assoc()): ?>
+
     <div class="card order-card mb-3 shadow-sm">
         <div class="card-body">
             <div class="row align-items-center">
@@ -67,19 +70,22 @@ $orders_result = mysqli_query($conn, "SELECT * FROM orders WHERE user_id=$user_i
             <div class="mt-3 pt-3 border-top">
                 <p class="small text-muted mb-2"><i class="bi bi-list-check"></i> Items:</p>
                 <?php
-                $items = mysqli_query($conn, "SELECT oi.quantity, m.name, m.price FROM order_items oi JOIN menu m ON oi.menu_id = m.id WHERE oi.order_id = " . $order['id']);
-                while($item = mysqli_fetch_assoc($items)):
+                $stmt2 = $conn->prepare("SELECT oi.quantity, m.name, m.price FROM order_items oi JOIN menu m ON oi.menu_id = m.id WHERE oi.order_id = ?");
+                $stmt2->bind_param("i", $order['id']);
+                $stmt2->execute();
+                $items = $stmt2->get_result();
+                while($item = $items->fetch_assoc()):
                 ?>
                     <div class="d-flex justify-content-between small">
                         <span><?= htmlspecialchars($item['name']) ?> x <?= $item['quantity'] ?></span>
                         <span>$<?= number_format($item['price'] * $item['quantity'], 2) ?></span>
                     </div>
-                <?php endwhile; ?>
+                <?php endwhile; $stmt2->close(); ?>
             </div>
         </div>
     </div>
 
-    <?php endwhile; ?>
+    <?php endwhile; $stmt->close(); ?>
 
     <?php else: ?>
     <div class="card text-center py-5">

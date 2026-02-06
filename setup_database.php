@@ -2,24 +2,24 @@
 // Database setup script
 $host = 'localhost';
 $user = 'root';
-$password = '070817';
+$password = '';  // Updated for XAMPP default
 $dbname = 'little_lemon';
 
 // Create connection without specifying database first
-$conn = mysqli_connect($host, $user, $password);
+$conn = new mysqli($host, $user, $password);
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 // Create database
 $sql = "CREATE DATABASE IF NOT EXISTS little_lemon";
-if (!mysqli_query($conn, $sql)) {
-    die("Error creating database: " . mysqli_error($conn));
+if (!$conn->query($sql)) {
+    die("Error creating database: " . $conn->error);
 }
 
 // Select the database
-mysqli_select_db($conn, $dbname);
+$conn->select_db($dbname);
 
 // SQL to create tables
 $tables = array(
@@ -44,6 +44,7 @@ $tables = array(
         category_id INT,
         name VARCHAR(100),
         price DECIMAL(6,2),
+        image_url VARCHAR(500) DEFAULT NULL,
         FOREIGN KEY (category_id) REFERENCES categories(id)
     )",
     
@@ -53,7 +54,10 @@ $tables = array(
         user_id INT,
         reserve_date DATE,
         reserve_time TIME,
-        guests INT
+        guests INT,
+        table_number VARCHAR(10) DEFAULT NULL,
+        status ENUM('pending','confirmed','cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
     
     // ORDERS TABLE
@@ -63,7 +67,10 @@ $tables = array(
         order_type ENUM('dine-in','takeaway'),
         reservation_id INT NULL,
         total DECIMAL(8,2),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        status ENUM('pending','completed','cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (reservation_id) REFERENCES reservations(id) ON DELETE SET NULL
     )",
     
     // ORDER ITEMS TABLE
@@ -71,15 +78,17 @@ $tables = array(
         id INT AUTO_INCREMENT PRIMARY KEY,
         order_id INT,
         menu_id INT,
-        quantity INT
+        quantity INT,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (menu_id) REFERENCES menu(id) ON DELETE CASCADE
     )"
 );
 
 // Execute all table creation queries
 $success = true;
 foreach ($tables as $sql) {
-    if (!mysqli_query($conn, $sql)) {
-        echo "Error creating table: " . mysqli_error($conn) . "<br>";
+    if (!$conn->query($sql)) {
+        echo "Error creating table: " . $conn->error . "<br>";
         $success = false;
     }
 }
@@ -101,7 +110,7 @@ if ($success) {
     echo "</div>";
 }
 
-mysqli_close($conn);
+$conn->close();
 ?>
 
 <!DOCTYPE html>

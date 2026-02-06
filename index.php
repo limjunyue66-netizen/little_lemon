@@ -29,9 +29,12 @@
 </div>
 </nav>
 
-<div class="container text-center mt-5">
+<div class="container text-center mt-5" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://tse4.mm.bing.net/th/id/OIP.BH6a5m-KkrTvCV2A943yWQHaE8?pid=Api&P=0&h=220') center/cover no-repeat; padding: 120px 20px; border-radius: 10px; position: relative; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); min-height: 500px; display: flex; align-items: center; justify-content: center;">
+<div style="position: relative; z-index: 1;">
 <h1>Welcome to Little Lemon 🍋</h1>
-<p class="text-muted">Reserve table & order food online</p>
+<p class="text-light">Reserve table & order food online</p>
+
+<div class="container text-center mt-5">
 
 <?php if(isset($_SESSION['reservation_success'])): ?>
 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -86,5 +89,6 @@
 <?php endif; ?>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

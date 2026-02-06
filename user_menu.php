@@ -26,10 +26,10 @@
 	$selected_cat = isset($_GET['cat']) ? intval($_GET['cat']) : 0;
 
 	// categories
-	$cats = mysqli_query($conn, "SELECT * FROM categories ORDER BY id");
+	$result = $conn->query("SELECT * FROM categories ORDER BY id");
 	echo '<div class="mb-4">';
 	echo '<a href="user_menu.php" class="btn btn-sm btn-outline-primary me-2' . ($selected_cat==0? ' active':'') . '"><i class="bi bi-grid-fill"></i> All</a>';
-	while($cat = mysqli_fetch_assoc($cats)){
+	while($cat = $result->fetch_assoc()){
 		$active = ($selected_cat == $cat['id']) ? ' active' : '';
 		echo '<a href="user_menu.php?cat='.$cat['id'].'" class="btn btn-sm btn-outline-primary me-2'.$active.'">'.htmlspecialchars($cat['name']).'</a>';
 	}
@@ -37,14 +37,17 @@
 
 	// menu items
 	if($selected_cat>0){
-		$items = mysqli_query($conn, "SELECT * FROM menu WHERE category_id=$selected_cat ORDER BY id DESC");
+		$stmt = $conn->prepare("SELECT * FROM menu WHERE category_id=? ORDER BY id DESC");
+		$stmt->bind_param("i", $selected_cat);
+		$stmt->execute();
+		$items = $stmt->get_result();
 	} else {
-		$items = mysqli_query($conn, "SELECT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id=c.id ORDER BY m.id DESC");
+		$items = $conn->query("SELECT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id=c.id ORDER BY m.id DESC");
 	}
 	?>
 
 	<div class="row">
-		<?php while($m = mysqli_fetch_assoc($items)): ?>
+		<?php while($m = $items->fetch_assoc()): ?>
 		<div class="col-md-4 col-sm-6 mb-4">
 			<div class="card menu-card h-100">
 				<div class="card-body d-flex flex-column">

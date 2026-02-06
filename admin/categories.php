@@ -15,12 +15,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
     if(empty($name)) {
         $error = "Category name is required";
     } else {
-        $name = mysqli_real_escape_string($conn, $name);
-        if(mysqli_query($conn, "INSERT INTO categories(name) VALUES('$name')")) {
+        $name = $conn->real_escape_string($name);
+        $stmt = $conn->prepare("INSERT INTO categories(name) VALUES(?)");
+        $stmt->bind_param("s", $name);
+        if($stmt->execute()) {
             $msg = "Category added successfully!";
         } else {
-            $error = "Error: " . mysqli_error($conn);
+            $error = "Error: " . $stmt->error;
         }
+        $stmt->close();
     }
 }
 ?>
@@ -62,8 +65,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
 <th>Category Name</th>
 </tr>
 <?php
-$c = mysqli_query($conn, "SELECT * FROM categories ORDER BY id DESC");
-while($row = mysqli_fetch_assoc($c)):
+$c = $conn->query("SELECT * FROM categories ORDER BY id DESC");
+while($row = $c->fetch_assoc()):
 ?>
 <tr>
 <td><?= $row['id'] ?></td>

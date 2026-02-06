@@ -22,14 +22,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
     $method = $_POST['payment_method'] ?? 'card';
 
     $uid = $_SESSION['user']['id'];
-    $type = mysqli_real_escape_string($conn, $pending['type']);
+    $type = $conn->real_escape_string($pending['type']);
     $total = $pending['total'];
 
-    $res = mysqli_query($conn, "INSERT INTO orders(user_id,order_type,total) VALUES('$uid','$type','$total')");
-    if($res) {
-        $oid = mysqli_insert_id($conn);
+    $stmt = $conn->prepare("INSERT INTO orders(user_id,order_type,total) VALUES(?,?,?)");
+    $stmt->bind_param("iss", $uid, $type, $total);
+    if($stmt->execute()) {
+        $oid = $conn->insert_id;
         foreach($cart as $mid => $q){
-            mysqli_query($conn, "INSERT INTO order_items(order_id,menu_id,quantity) VALUES('$oid','$mid','$q')");
+            $stmt2 = $conn->prepare("INSERT INTO order_items(order_id,menu_id,quantity) VALUES(?,?,?)");
+            $stmt2->bind_param("iii", $oid, $mid, $q);
+            $stmt2->execute();
+            $stmt2->close();
         }
 
         // clear cart and pending
@@ -40,8 +44,9 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
         header('Location: index.php');
         exit();
     } else {
-        $error = 'Error processing order: ' . mysqli_error($conn);
+        $error = 'Error processing order: ' . $stmt->error;
     }
+    $stmt->close();
 }
 ?>
 

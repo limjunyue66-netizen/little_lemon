@@ -17,12 +17,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_menu'])) {
     if(empty($name) || $price <= 0 || $cat <= 0) {
         $error = "All fields are required. Price must be greater than 0";
     } else {
-        $name = mysqli_real_escape_string($conn, $name);
-        if(mysqli_query($conn, "INSERT INTO menu(category_id,name,price) VALUES('$cat','$name','$price')")) {
+        $name = $conn->real_escape_string($name);
+        $stmt = $conn->prepare("INSERT INTO menu(category_id,name,price) VALUES(?,?,?)");
+        $stmt->bind_param("isd", $cat, $name, $price);
+        if($stmt->execute()) {
             $msg = "Menu item added successfully!";
         } else {
-            $error = "Error: " . mysqli_error($conn);
+            $error = "Error: " . $stmt->error;
         }
+        $stmt->close();
     }
 }
 ?>
@@ -57,8 +60,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_menu'])) {
 <select name="cat" class="form-control" required>
 <option value="">Select Category</option>
 <?php
-$c = mysqli_query($conn, "SELECT * FROM categories");
-while($r = mysqli_fetch_assoc($c)):
+$c = $conn->query("SELECT * FROM categories");
+while($r = $c->fetch_assoc()):
 ?>
 <option value="<?= $r['id'] ?>"><?= htmlspecialchars($r['name']) ?></option>
 <?php endwhile; ?>
@@ -85,8 +88,8 @@ while($r = mysqli_fetch_assoc($c)):
 <th>Price</th>
 </tr>
 <?php
-$menu = mysqli_query($conn, "SELECT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id = c.id ORDER BY m.id DESC");
-while($item = mysqli_fetch_assoc($menu)):
+$menu = $conn->query("SELECT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id = c.id ORDER BY m.id DESC");
+while($item = $menu->fetch_assoc()):
 ?>
 <tr>
 <td><?= $item['id'] ?></td>

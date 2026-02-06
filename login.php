@@ -7,9 +7,13 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     $email = trim($_POST['email']);
     $pass = $_POST['password'];
     
-    $email = mysqli_real_escape_string($conn, $email);
-    $q = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-    $user = mysqli_fetch_assoc($q);
+    $email = $conn->real_escape_string($email);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email=?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $stmt->close();
     
     if($user && password_verify($pass, $user['password'])){
         $_SESSION['user'] = $user;

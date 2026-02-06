@@ -13,7 +13,8 @@ if(!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 <link href="assets/css/responsive.css" rel="stylesheet">
 <style>
-	.menu-table tbody tr:hover { background-color: #f8f9fa; }
+	.menu-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+	.menu-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; }
 	.cart-card { border-top: 3px solid #28a745; }
 	.qty-input { max-width: 70px; }
 	.order-header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px 0; margin-bottom: 30px; border-radius: 0 0 15px 15px; }
@@ -32,13 +33,17 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         $qty = intval($_POST['qty']);
         
         // Verify menu item exists
-        $check = mysqli_query($conn, "SELECT id FROM menu WHERE id=$id");
-        if(mysqli_num_rows($check) > 0) {
+        $stmt = $conn->prepare("SELECT id FROM menu WHERE id=?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if($result->num_rows > 0) {
             $_SESSION['cart'][$id] = (isset($_SESSION['cart'][$id]) ? $_SESSION['cart'][$id] : 0) + $qty;
             $msg = "Item added to cart!";
         } else {
             $error = "Menu item not found";
         }
+        $stmt->close();
     }
     
     if(isset($_POST['checkout'])){
@@ -49,16 +54,21 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
         } else {
             $total = 0;
             foreach($_SESSION['cart'] as $mid => $q){
-                $p = mysqli_fetch_assoc(mysqli_query($conn, "SELECT price FROM menu WHERE id=$mid"));
+                $stmt = $conn->prepare("SELECT price FROM menu WHERE id=?");
+                $stmt->bind_param("i", $mid);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $p = $result->fetch_assoc();
                 if($p) {
                     $total += $p['price'] * $q;
                 }
+                $stmt->close();
             }
 
             // store pending order in session for payment step
             $_SESSION['pending_order'] = [
                 'user_id' => isset($_SESSION['user']) ? $_SESSION['user']['id'] : null,
-                'type' => mysqli_real_escape_string($conn, $type),
+                'type' => $conn->real_escape_string($type),
                 'total' => $total,
                 'cart' => $_SESSION['cart']
             ];
@@ -75,8 +85,8 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     }
 }
 
-// Get all menu items
-$menu_result = mysqli_query($conn, "SELECT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id = c.id");
+// Get all menu items (DISTINCT to prevent duplicates)
+$menu_result = $conn->query("SELECT DISTINCT m.*, c.name as category FROM menu m JOIN categories c ON m.category_id = c.id GROUP BY m.id");
 ?>
 
 <div class="order-header">
@@ -107,38 +117,26 @@ $menu_result = mysqli_query($conn, "SELECT m.*, c.name as category FROM menu m J
 
 <div class="row">
 <div class="col-lg-8">
-<div class="card shadow-sm mb-4">
-<div class="card-header bg-primary text-white"><i class="bi bi-list"></i> Available Menu</div>
-<div class="card-body p-0">
-<table class="table table-hover menu-table mb-0">
-<thead class="table-light">
-<tr>
-<th><i class="bi bi-cup-hot"></i> Item</th>
-<th>Category</th>
-<th>Price</th>
-<th>Qty</th>
-<th>Action</th>
-</tr>
-</thead>
-<tbody>
-<?php while($menu = mysqli_fetch_assoc($menu_result)): ?>
-<tr>
-<form method="post" class="w-100">
-<td><strong><?= htmlspecialchars($menu['name']) ?></strong></td>
-<td><span class="badge bg-info"><?= htmlspecialchars($menu['category']) ?></span></td>
-<td><span class="fw-bold text-success">$<?= number_format($menu['price'], 2) ?></span></td>
-<td><input type="number" name="qty" value="1" min="1" class="form-control qty-input"></td>
-<td>
-<input type="hidden" name="menu_id" value="<?= $menu['id'] ?>">
-<button type="submit" name="add_to_cart" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i></button>
-</td>
-</form>
-</tr>
+<h4 class="mb-4"><i class="bi bi-list"></i> Available Menu</h4>
+<div class="row g-4">
+<?php while($menu = $menu_result->fetch_assoc()): ?>
+<div class="col-md-6 col-lg-4">
+<div class="card shadow-sm menu-card h-100 text-center">
+	<div class="card-body d-flex flex-column">
+		<h5 class="card-title"><?= htmlspecialchars($menu['name']) ?></h5>
+		<p class="text-muted small mb-2"><span class="badge bg-info"><?= htmlspecialchars($menu['category']) ?></span></p>
+		<p class="h5 text-success fw-bold mb-3">$<?= number_format($menu['price'], 2) ?></p>
+		<form method="post" class="mt-auto">
+			<div class="input-group input-group-sm mb-2">
+				<input type="number" name="qty" value="1" min="1" class="form-control" placeholder="Qty">
+				<button type="submit" name="add_to_cart" class="btn btn-primary"><i class="bi bi-cart-plus"></i> Add</button>
+			</div>
+			<input type="hidden" name="menu_id" value="<?= $menu['id'] ?>">
+		</form>
+	</div>
+</div>
+</div>
 <?php endwhile; ?>
-</tbody>
-</table>
-</div>
-</div>
 </div>
 </div>
 
@@ -150,7 +148,11 @@ $menu_result = mysqli_query($conn, "SELECT m.*, c.name as category FROM menu m J
 $cart_total = 0;
 if(!empty($_SESSION['cart'])): 
     foreach($_SESSION['cart'] as $id => $q):
-        $m = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM menu WHERE id=$id"));
+        $stmt = $conn->prepare("SELECT * FROM menu WHERE id=?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $m = $result->fetch_assoc();
         if($m):
             $subtotal = $m['price'] * $q;
             $cart_total += $subtotal;
